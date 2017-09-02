@@ -24,13 +24,13 @@ import (
 )
 
 const (
-	eol            = 0x80
-	final          = 0x40
-	byteMask       = ^byte(eol | final)
-	markEOW        = 1 << 28
-	markDash       = 1 << 29
-	markApostrophe = 1 << 30
-	runeMask       = ^rune(markEOW | markDash | markApostrophe)
+	eol      = 0x80
+	final    = 0x40
+	byteMask = ^byte(eol | final)
+	eow      = 1 << 28
+	dash     = 1 << 29
+	apos     = 1 << 30
+	runeMask = ^rune(eow | dash | apos)
 )
 
 var dawg []byte
@@ -53,7 +53,7 @@ func next(index int) int {
 		int(dawg[index+2])<<16)
 }
 
-func toString(rr []rune) string {
+func str(rr []rune) string {
 	s := ""
 	d := ""
 	for _, r := range rr {
@@ -61,11 +61,11 @@ func toString(rr []rune) string {
 			s += d
 		}
 		s += string(r & runeMask)
-		if r&markEOW != 0 {
+		if r&eow != 0 {
 			d = " "
-		} else if r&markDash != 0 {
+		} else if r&dash != 0 {
 			d = "-"
-		} else if r&markApostrophe != 0 {
+		} else if r&apos != 0 {
 			d = "'"
 		} else {
 			d = ""
@@ -77,7 +77,7 @@ func toString(rr []rune) string {
 func numWords(rr []rune) int {
 	n := 0
 	for _, r := range rr {
-		if r&markEOW != 0 {
+		if r&eow != 0 {
 			n++
 		}
 	}
@@ -86,7 +86,7 @@ func numWords(rr []rune) int {
 
 func printAnagramsInternal(w io.Writer, index, level, maxWords int, runeset, tmp []rune, remaining []int, orig string) {
 	if level == len(tmp) {
-		anagram := toString(tmp)
+		anagram := str(tmp)
 		if anagram != orig {
 			fmt.Fprintln(w, anagram)
 		}
@@ -101,9 +101,9 @@ func printAnagramsInternal(w io.Writer, index, level, maxWords int, runeset, tmp
 		b := byteAt(index)
 
 		if b == 32 || b == 33 {
-			var mark rune = markDash
+			var mark rune = dash
 			if b == 33 {
-				mark = markApostrophe
+				mark = apos
 			}
 			tmp[level-1] |= mark
 			printAnagramsInternal(w, next(index), level, maxWords, runeset, tmp, remaining, orig)
@@ -121,7 +121,7 @@ func printAnagramsInternal(w io.Writer, index, level, maxWords int, runeset, tmp
 				printAnagramsInternal(w, nextIndex, level+1, maxWords, runeset, tmp, remaining, orig)
 			}
 			if isFinal(index) {
-				tmp[level] |= markEOW
+				tmp[level] |= eow
 				printAnagramsInternal(w, 0, level+1, maxWords, runeset, tmp, remaining, orig)
 			}
 			remaining[i]++
