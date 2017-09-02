@@ -84,16 +84,16 @@ func numWords(rr []rune) int {
 	return n
 }
 
-func printAnagramsInternal(w io.Writer, index, level, maxWords int, runeset, tmp []rune, remaining []int, orig string) {
-	if level == len(tmp) {
-		anagram := str(tmp)
+func printAnagramsInternal(w io.Writer, index, level, maxWords int, runeset, buf []rune, remaining []int, orig string) {
+	if level == len(buf) {
+		anagram := str(buf)
 		if anagram != orig {
 			fmt.Fprintln(w, anagram)
 		}
 		return
 	}
 
-	if numWords(tmp[:level]) >= maxWords {
+	if numWords(buf[:level]) >= maxWords {
 		return
 	}
 
@@ -105,9 +105,9 @@ func printAnagramsInternal(w io.Writer, index, level, maxWords int, runeset, tmp
 			if b == 33 {
 				mark = apos
 			}
-			tmp[level-1] |= mark
-			printAnagramsInternal(w, next(index), level, maxWords, runeset, tmp, remaining, orig)
-			tmp[level-1] &= ^mark
+			buf[level-1] |= mark
+			printAnagramsInternal(w, next(index), level, maxWords, runeset, buf, remaining, orig)
+			buf[level-1] &= ^mark
 		} else {
 			for i, r := range runeset {
 				if b != byte(r-'а') || remaining[i] == 0 {
@@ -115,13 +115,13 @@ func printAnagramsInternal(w io.Writer, index, level, maxWords int, runeset, tmp
 				}
 
 				remaining[i]--
-				tmp[level] = r
-				if nextIndex := next(index); nextIndex != 0 && level+1 < len(tmp) {
-					printAnagramsInternal(w, nextIndex, level+1, maxWords, runeset, tmp, remaining, orig)
+				buf[level] = r
+				if nextIndex := next(index); nextIndex != 0 && level+1 < len(buf) {
+					printAnagramsInternal(w, nextIndex, level+1, maxWords, runeset, buf, remaining, orig)
 				}
 				if isFinal(index) {
-					tmp[level] |= eow
-					printAnagramsInternal(w, 0, level+1, maxWords, runeset, tmp, remaining, orig)
+					buf[level] |= eow
+					printAnagramsInternal(w, 0, level+1, maxWords, runeset, buf, remaining, orig)
 				}
 				remaining[i]++
 			}
@@ -154,8 +154,8 @@ func printAnagrams(w io.Writer, s string, maxWords int) {
 		runeset = append(runeset, k)
 		remaining = append(remaining, v)
 	}
-	tmp := make([]rune, n)
-	printAnagramsInternal(w, 0, 0, maxWords, runeset, tmp, remaining, s)
+	buf := make([]rune, n)
+	printAnagramsInternal(w, 0, 0, maxWords, runeset, buf, remaining, s)
 }
 
 func init() {
