@@ -108,23 +108,23 @@ func printAnagramsInternal(w io.Writer, index, level, maxWords int, runeset, tmp
 			tmp[level-1] |= mark
 			printAnagramsInternal(w, next(index), level, maxWords, runeset, tmp, remaining, orig)
 			tmp[level-1] &= ^mark
-		}
+		} else {
+			for i, r := range runeset {
+				if b != byte(r-'а') || remaining[i] == 0 {
+					continue
+				}
 
-		for i, r := range runeset {
-			if remaining[i] == 0 || b != byte(r-'а') {
-				continue
+				remaining[i]--
+				tmp[level] = r
+				if nextIndex := next(index); nextIndex != 0 && level+1 < len(tmp) {
+					printAnagramsInternal(w, nextIndex, level+1, maxWords, runeset, tmp, remaining, orig)
+				}
+				if isFinal(index) {
+					tmp[level] |= eow
+					printAnagramsInternal(w, 0, level+1, maxWords, runeset, tmp, remaining, orig)
+				}
+				remaining[i]++
 			}
-
-			remaining[i]--
-			tmp[level] = r
-			if nextIndex := next(index); nextIndex != 0 && level+1 < len(tmp) {
-				printAnagramsInternal(w, nextIndex, level+1, maxWords, runeset, tmp, remaining, orig)
-			}
-			if isFinal(index) {
-				tmp[level] |= eow
-				printAnagramsInternal(w, 0, level+1, maxWords, runeset, tmp, remaining, orig)
-			}
-			remaining[i]++
 		}
 
 		if isEOL(index) {
