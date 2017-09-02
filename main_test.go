@@ -20,6 +20,15 @@ import (
 )
 
 var testCases = [][]string{
+	{"окажется", "жестокая"},
+	{"детская", "десятка"},
+	{"договор", "городов"},
+	{"можно", "ножом"},
+	{"полная", "поляна"},
+	{"приносят", "пряности"},
+	{"кузина", "узника"},
+
+	// http://www.blues.ru/fedor/anagrams
 	{"австралопитек", "ватерполистка"},
 	{"обезьянство", "светобоязнь"},
 	{"анкилозавр", "разлиновка"},
@@ -1325,6 +1334,25 @@ var testCases = [][]string{
 	{"татра", "трата"},
 }
 
+var testCases2 = []struct {
+	in       string
+	maxWords int
+	out      string
+}{
+	{"вижу зверей", 2, "живу резвей"},
+	{"сам я не свой", 3, "с мая весной"},
+	{"на дворе трава", 3, "на траве дрова"},
+	{"пожалуйста", 2, "пожуй салат"},
+	{"врагов", 2, "в овраг"},
+	{"сижу в области", 2, "вижу слабости"},
+	{"хулиган", 3, "ух и нагл"},
+	{"кот влез", 2, "в клозет"},
+	{"учительница", 3, "учти и нацель"},
+	{"меч пион", 1, "чемпион"},
+	{"тон кора", 1, "контора"},
+	{"кок роба", 1, "коробка"},
+}
+
 func contains(buf *bytes.Buffer, needle string) bool {
 	lines := strings.Split(buf.String(), "\n")
 	for _, l := range lines {
@@ -1350,6 +1378,14 @@ func TestPrintAnagrams(t *testing.T) {
 					t.Errorf("%s must be among anagrams of %s", w, word)
 				}
 			}
+		}
+	}
+
+	for _, tc := range testCases2 {
+		buf.Reset()
+		printAnagrams(&buf, tc.in, tc.maxWords)
+		if !contains(&buf, tc.out) {
+			t.Errorf("%s must be among anagrams of %s", tc.out, tc.in)
 		}
 	}
 }
